@@ -1,0 +1,65 @@
+name: Basic container checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Set up application
+        run: task setup
+
+      - name: Run tests
+        run: task test
+
+      - name: Build container
+        run: task build
+
+  container-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+
+      - name: Build container
+        run: task build
+
+      - name: Start container
+        run: task container:run
+
+      - name: Wait for API
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Smoke test
+        run: task smoke
+
+      - name: Stop container
+        if: always()
+        run: task container:stop
