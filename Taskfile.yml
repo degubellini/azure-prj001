@@ -1,0 +1,68 @@
+version: '3'
+
+vars:
+  APP_NAME: azure-lab001
+  IMAGE_NAME: azure-lab001-api
+  IMAGE_TAG: dev
+
+tasks:
+
+  default:
+    desc: List available project tasks
+    cmds:
+      - task --list
+
+  setup:
+    desc: Create the Python virtual environment and install dependencies
+    cmds:
+      - python3 -m venv .venv
+      - .venv/bin/pip install --upgrade pip
+      - .venv/bin/pip install -r app/requirements-dev.txt
+
+  test:
+    desc: Run application tests
+    cmds:
+      - .venv/bin/pytest -v
+
+  app:run:
+    desc: Run the API locally
+    cmds:
+      - .venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+  smoke:
+    desc: Run basic API smoke tests
+    cmds:
+      - curl --fail --silent http://localhost:8000/health
+      - echo
+      - curl --fail --silent http://localhost:8000/ready
+      - echo
+
+  build:
+    desc: Build the application container
+    cmds:
+      - docker build
+        -t {{.IMAGE_NAME}}:{{.IMAGE_TAG}}
+        -f app/Dockerfile
+        .
+
+  container:run:
+    desc: Run the application container locally in background
+    cmds:
+      - docker run
+        --detach
+        --rm
+        --name {{.APP_NAME}}
+        -p 8000:8000
+        {{.IMAGE_NAME}}:{{.IMAGE_TAG}}
+
+  container:stop:
+    desc: Stop the application container
+    cmds:
+      - docker stop {{.APP_NAME}} || true
+
+  clean:
+    desc: Remove local Python build and test pytest_cache
+    cmds:
+      - rm -rf .pytest_cache
+      - find . -type d -name __pycache__ -prune -exec rm -rf {} +
+      - rm -rf .venv
