@@ -1,9 +1,10 @@
 version: '3'
 
 vars:
-  APP_NAME: azure-lab001
-  IMAGE_NAME: azure-lab001-api
+  APP_NAME: azure-prj001
+  IMAGE_NAME: azure-prj001-api
   IMAGE_TAG: dev
+  KIND_CLUSTER: azure-prj001
 
 tasks:
 
@@ -66,3 +67,42 @@ tasks:
       - rm -rf .pytest_cache
       - find . -type d -name __pycache__ -prune -exec rm -rf {} +
       - rm -rf .venv
+
+  kind:create:
+    desc: Create the local Kubernetes cluster (kind)
+    cmds:
+      - kind create cluster
+        --name {{.KIND_CLUSTER}}
+        --wait 60s
+
+  kind:load:
+    desc: Load the application image into the kind cluster
+    cmds:
+      - kind load docker-image
+        {{.IMAGE_NAME}}:{{.IMAGE_TAG}}
+        --name {{.KIND_CLUSTER}}
+
+  kind:deploy:
+    desc: Deploy the application to Kubernetes
+    cmds:
+      - kubectl apply -f kubernetes/
+
+  kind:status:
+    desc: Show application Kubernetes resources
+    cmds:
+      - kubectl get deployment
+      - kubectl get pods
+      - kubectl get service
+
+  kind:forward:
+    desc: Forward the Kubernetes service to localhost:8000
+    cmds:
+      - kubectl port-forward
+        service/{{.APP_NAME}}-api
+        8000:80
+  
+  kind:destroy:
+    desc: Delete the local Kubernetes cluster
+    cmds:
+      - kind delete cluster
+        --name {{.KIND_CLUSTER}}

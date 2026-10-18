@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 
 app = FastAPI(
-    title="azure-lab001 API",
+    title="azure-prj001 API",
     version="0.1.0",
 )
 
@@ -12,7 +12,7 @@ app = FastAPI(
 @app.get("/")
 def root():
     return {
-        "service": "azure-lab001",
+        "service": "azure-prg001",
         "version": "0.1.0",
     }
 
