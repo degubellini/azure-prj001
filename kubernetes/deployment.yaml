@@ -16,10 +16,25 @@ spec:
         app: azure-prj001-api
 
     spec:
+      securityContext:
+        runAsNonRoot: true
+
       containers:
         - name: api
           image: azure-prj001-api:dev
           imagePullPolicy: IfNotPresent
+
+          securityContext:
+            allowPrivilegeEscalation: false
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+
+            limits:
+              cpu: 500m
+              memory: 256Mi
 
           ports:
             - containerPort: 8000

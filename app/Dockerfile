@@ -2,6 +2,12 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
+RUN groupadd --system --gid 999 appgroup \
+    && useradd --system \
+       --uid 999 \
+       --gid 999 \
+       appuser
+
 COPY app/requirements.txt .
 
 RUN pip install \
@@ -10,6 +16,11 @@ RUN pip install \
 
 COPY app /app/app
 
+RUN chown -R 999:999 /app
+
+USER 999:999
+
 EXPOSE 8000
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
