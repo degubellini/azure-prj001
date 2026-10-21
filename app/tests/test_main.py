@@ -18,3 +18,10 @@ def test_readiness():
 
     assert response.status_code == 200
     assert response.json() == {"status": "ready"}
+
+def test_metrics():
+    response = client.get("/metrics")
+
+    assert response.status_code == 200
+    assert "http_requests_total" in response.text
+

@@ -106,3 +106,15 @@ tasks:
     cmds:
       - kind delete cluster
         --name {{.KIND_CLUSTER}}
+
+  kind:restart:
+    desc: Restart the Kubernetes deployment
+    cmds:
+      - kubectl rollout restart deployment/{{.APP_NAME}}-api
+
+  kind:pods:
+    desc: Show application pods
+    cmds:
+      - kubectl get pods -o wide
+
+
